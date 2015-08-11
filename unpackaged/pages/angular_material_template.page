@@ -1,0 +1,176 @@
+<apex:page applyHtmlTag="false" docType="html" applyBodyTag="false" showHeader="false" standardStylesheets="false" >
+    
+    <!-- Setup Remote Objects -->
+    <apex:remoteObjects >
+        <apex:remoteObjectModel name="Corporate_Goal__c" fields="Calorie_Goal__c,Distance_Goal__c,Floors_Goal__c,Month__c,Step_Goal__c,Total_Calories__c, Total_Distance__c, Total_Floors__c, Total_Steps__c, Year__c"></apex:remoteObjectModel>
+        <apex:remoteObjectModel name="Contact" fields="Id,Name,FirstName,Avatar__c,User__c,Trainer__c"></apex:remoteObjectModel>
+        <apex:remoteObjectModel name="Reading__c" fields="Id,Contact__c,Calories__c,Date__c,Distance__c,Floors__c,Month__c,Steps__c"></apex:remoteObjectModel>
+        <apex:remoteObjectModel name="Leaderboard__c" fields="Id,Contact__c,Month__c,Total_Calories__c,Total_Distance__c,Total_Floors__c,Total_Steps__c"></apex:remoteObjectModel>
+    </apex:remoteObjects>
+    
+    <html lang="en" ng-app="myApp">
+        <head>
+            <title>FrontRunner</title>
+            <link rel="stylesheet" href="/resource/dashboard/lib/angular-material/angular-material.min.css" />
+            <link rel="stylesheet" href="/resource/dashboard/main.css" />
+            <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic" />-->
+            <meta name="viewport" content="initial-scale=1" />
+        </head>
+        <body ng-controller="myController">
+            <div layout="column" layout-fill="true">
+                <md-toolbar>
+                    <div class="md-toolbar-tools">
+                      <h1 class="main-heading">front<span>Runner</span></h1>
+                      &nbsp;&nbsp;<span class="small">How we fared this month</span>
+                    </div>
+                </md-toolbar>
+                <div layout="row" class="full">
+                    <div class="full" flex="80" layout="column">
+                        <div flex="33" layout="row">
+                            <div class="full" flex="25">
+                                <div class="round-progress-card" ng-click="showUpdateDialog()">
+                                    <div
+                                        round-progress="true"
+                                        max="Corporate_Step_Goal__c"
+                                        current="Corporate_Total_Steps__c"
+                                        color="#1abc9c"
+                                        bgcolor="#eaeaea"
+                                        radius="80"
+                                        stroke="10"
+                                        semi="false"
+                                        rounded="true"
+                                        clockwise="true"
+                                        iterations="50"
+                                        animation="easeInOutQuart">
+                                        <text x="60" y="60" font-size="15px">Steps</text>
+                                        <text x="55" y="90" font-size="30px">{{ percent(Corporate_Total_Steps__c, Corporate_Step_Goal__c) }}</text>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="full" flex="25">
+                                <div class="round-progress-card">
+                                    <div
+                                        round-progress="true"
+                                        max="Corporate_Calorie_Goal__c"
+                                        current="Corporate_Total_Calories__c"
+                                        color="#2ecc71"
+                                        bgcolor="#eaeaea"
+                                        radius="80"
+                                        stroke="10"
+                                        semi="false"
+                                        rounded="true"
+                                        clockwise="true"
+                                        iterations="50"
+                                        animation="easeInOutQuart">
+                                        <text x="55" y="60" font-size="15px">Calories</text>
+                                        <text x="60" y="90" font-size="30px">{{ percent(Corporate_Total_Calories__c, Corporate_Calorie_Goal__c) }}</text>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="full" flex="25">
+                                <div class="round-progress-card">
+                                    <div
+                                        round-progress="true"
+                                        max="Corporate_Distance_Goal__c"
+                                        current="Corporate_Total_Distance__c"
+                                        color="#e67e22"
+                                        bgcolor="#eaeaea"
+                                        radius="80"
+                                        stroke="10"
+                                        semi="false"
+                                        rounded="true"
+                                        clockwise="true"
+                                        iterations="50"
+                                        animation="easeInOutQuart">
+                                        <text x="50" y="60" font-size="15px">Distance</text>
+                                        <text x="55" y="90" font-size="30px">{{ percent(Corporate_Total_Distance__c, Corporate_Distance_Goal__c) }}</text>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="full" flex="25">
+                                <div class="round-progress-card">
+                                    <div
+                                        round-progress="true"
+                                        max="Corporate_Floors_Goal__c"
+                                        current="Corporate_Total_Floors__c"
+                                        color="#3498db"
+                                        bgcolor="#eaeaea"
+                                        radius="80"
+                                        stroke="10"
+                                        semi="false"
+                                        rounded="true"
+                                        clockwise="true"
+                                        iterations="50"
+                                        animation="easeInOutQuart">
+                                        <text x="60" y="60" font-size="15px">Floors</text>
+                                        <text x="60" y="90" font-size="30px">{{ percent(Corporate_Total_Floors__c, Corporate_Floors_Goal__c) }}</text>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div flex="66" layout="row" class="full">
+                            <div class="full userAggregates-chart" flex="50">
+                                <md-select placeholder="Attribute" ng-model="selectedAttribute">
+                                    <md-option ng-repeat="attribute in attributes" value="{{ attribute }}">{{ attribute }}</md-option>
+                                </md-select>
+                                <div ac-chart="'bar'" ac-data="userAggregates" ac-config="userAggregatesConfig" class="chart" />
+                                <div class="graph-label">
+                                    <span>{{ selectedAttribute }} per Person</span>
+                                </div>
+                            </div>
+                            <div class="full userReadings-chart" flex="50">
+                                <md-select placeholder="Attribute" ng-model="selectedUser">
+                                    <md-option ng-repeat="(key, value) in users" value="{{ key }}">{{ value._props.FirstName }}</md-option>
+                                </md-select>
+                                <div ac-chart="'line'" ac-data="userReadings" ac-config="userReadingsConfig" class="chart" />
+                                <div class="graph-label">
+                                    <span>{{ selectedAttribute }} for {{ users[selectedUser]._props.FirstName }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="full purple" flex="20">
+                        <div class="message">
+                            <md-input-container md-no-float="true">
+                                <input ng-model="message" type="text" placeholder="Say something..." />
+                                <md-icon md-svg-icon="/resource/dashboard/img/launch.svg" ng-click="addChat()"></md-icon>
+                            </md-input-container>
+                        </div>
+                        <md-list>
+                            <md-list-item class="md-3-line" ng-repeat="chat in chats | reverse">
+                                <img ng-src="{{ users[chat.user]._props.Avatar__c }}" class="md-avatar" alt="{{users[chat.user]._props.Name}}" />
+                                <div class="md-list-item-text">
+                                    <h3>{{ users[chat.user]._props.Name }}</h3>
+                                    <h4>{{ chat.date }}</h4>
+                                    <p>{{ chat.message }}</p>
+                                    <img ng-if="chat.image" class="full-image" ng-src="data:image/jpeg;base64,{{ chat.image }}" />
+                                </div>
+                            </md-list-item>
+                        </md-list>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // Inject user;
+                var userId = "{!$User.Id}";
+
+            </script>
+
+            <script src="/resource/dashboard/lib/angular/angular.min.js"></script>
+            <script src="/resource/dashboard/lib/angular-animate/angular-animate.min.js"></script>
+            <script src="/resource/dashboard/lib/angular-aria/angular-aria.min.js"></script>
+            <script src="/resource/dashboard/lib/angular-material/angular-material.min.js"></script>
+            <script src="/resource/dashboard/lib/angular-svg-round-progressbar/build/roundProgress.min.js"></script>
+            <script src="/resource/dashboard/lib/d3/d3.min.js"></script>
+            <script src="/resource/dashboard/lib/angular-charts/dist/angular-charts.min.js"></script>
+
+            <!-- Firebase -->
+            <script src="https://cdn.firebase.com/js/client/2.2.4/firebase.js"></script>
+            <script src="https://cdn.firebase.com/libs/angularfire/1.1.2/angularfire.min.js"></script>
+
+            <script src="/resource/dashboard/main.js"></script>
+            
+        </body>
+    </html>
+</apex:page>

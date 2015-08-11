@@ -1,0 +1,19 @@
+{
+  "name": "dashboard",
+  "version": "0.0.0",
+  "authors": [
+    "Shekhar Patnaik <shepatnaik@deloitte.co.uk>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/lib/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.3"
+  }
+}
